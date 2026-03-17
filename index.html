@@ -1,0 +1,790 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SK Agro Chemicals</title>
+
+    <!-- ─── SEO Meta Tags ─────────────────────────────────────── -->
+    <meta
+      name="description"
+      content="SK Agro Chemicals — Professional invoice generator for agro chemical products. Fast, beautiful and easy to use."
+    />
+    <meta
+      name="keywords"
+      content="SK Agro Chemicals, invoice, agro chemicals, GST invoice, Rajkot"
+    />
+    <meta name="author" content="SK Agro Chemicals" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- ─── Favicon — Browser Tab & Bookmarks ────────────────── -->
+    <!-- Fallback ICO (all browsers, especially older IE) -->
+    <link rel="shortcut icon" href="/public/favicon.ico" />
+    <!-- Standard PNG favicons -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/public/favicon-16x16.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/public/favicon-32x32.png"
+    />
+    <!-- ─── Apple / iOS PWA — Add to Home Screen ──────────────── -->
+    <!-- Icon shown on iOS home screen when user taps "Add to Home Screen" -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/public/apple-touch-icon.png"
+    />
+    <!-- Hides browser chrome — app opens fullscreen like a native app -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- Status bar style: default | black | black-translucent -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- App name shown below icon on iOS home screen -->
+    <meta name="apple-mobile-web-app-title" content="SK Agro" />
+    <!-- Splash / startup image hint for older iOS (optional) -->
+    <link
+      rel="apple-touch-startup-image"
+      href="/public/android-chrome-512x512.png"
+    />
+
+    <!-- ─── PWA Manifest — Android / Chrome / Edge / Samsung ───── -->
+    <!-- Controls "Add to Home Screen" icon, app name, display mode -->
+    <link rel="manifest" href="/public/manifest.json" />
+
+    <!-- ─── Theme & Tile Colors ─────────────────────────────────── -->
+    <!-- Android Chrome address bar & Edge tab color -->
+    <meta name="theme-color" content="#10b981" />
+    <!-- Windows Pin / Start tile -->
+    <meta name="msapplication-TileColor" content="#10b981" />
+    <meta
+      name="msapplication-TileImage"
+      content="/public/android-chrome-192x192.png"
+    />
+
+    <!-- ─── Open Graph — Social Sharing Preview ──────────────── -->
+    <meta property="og:title" content="SK Agro Chemicals — Invoice Builder" />
+    <meta
+      property="og:description"
+      content="Professional invoice generator for SK Agro Chemicals."
+    />
+    <meta property="og:image" content="/public/logo.jpg" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- ─── Twitter Card ─────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SK Agro Chemicals — Invoice Builder" />
+    <meta
+      name="twitter:description"
+      content="Professional invoice generator for SK Agro Chemicals."
+    />
+    <meta name="twitter:image" content="/public/logo.jpg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+
+  <body>
+    <!-- ─── LOGIN ─────────────────────────────────────────── -->
+    <div id="login-screen">
+      <div class="login-card">
+        <!-- ─── Logo Component — Change branding here globally ─── -->
+        <div
+          class="login-logo"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 0;
+          "
+        >
+          <img
+            src="public/logo.jpg"
+            alt="SK Agro Chemicals Logo"
+            id="brand-logo"
+            onerror="
+              this.style.display = 'none';
+              document.getElementById('brand-logo-text').style.display =
+                'block';
+            "
+            style="
+              height: 56px;
+              width: 56px;
+              object-fit: contain;
+              border-radius: 8px;
+            "
+          />
+          <span id="brand-logo-text" style="display: none"
+            >SK Agro<span style="color: #f1f5f9"> Chemicals</span></span
+          >
+        </div>
+        <div class="login-sub" style="margin-top: 10px">
+          Professional Invoice Builder
+        </div>
+        <input
+          id="l-user"
+          class="login-field"
+          placeholder="Username"
+          type="text"
+          autocomplete="username"
+        />
+        <input
+          id="l-pass"
+          class="login-field"
+          placeholder="Password"
+          type="password"
+          autocomplete="current-password"
+        />
+        <button class="login-btn" onclick="doLogin()">Sign In</button>
+        <div class="login-hint">
+          
+        </div>
+        <!-- Registration feature removed -->
+      </div>
+    </div>
+
+    <!-- Registration modal removed -->
+
+    <!-- ─── TOAST ─────────────────────────────────────────── -->
+    <div id="toast"></div>
+
+    <!-- ─── TOOLBAR ───────────────────────────────────────── -->
+    <div id="toolbar" class="hidden">
+      <!-- ─── Navbar Logo Component — Change branding here globally ─── -->
+      <div
+        class="toolbar-brand"
+        style="display: flex; align-items: center; gap: 10px"
+      >
+        <img
+          src="public/logo.jpg"
+          alt="SK Agro Chemicals"
+          id="navbar-logo"
+          onerror="this.style.display = 'none'"
+          style="
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 6px;
+            flex-shrink: 0;
+          "
+        />
+        <span>SK Agro<span style="color: #f1f5f9"> Chemicals</span></span>
+      </div>
+      <div class="toolbar-actions">
+        <button
+          class="btn btn-ghost"
+          onclick="window.location.href = 'history.html'"
+          style="color: #e2e8f0; border-color: #334155; margin-right: 8px"
+        >
+          <span class="material-symbols-outlined">history</span>
+          History
+        </button>
+        <button
+          class="btn"
+          id="save-cloud-btn"
+          onclick="saveToCloud()"
+          style="
+            background: #10b981;
+            color: #fff;
+            border: none;
+            margin-right: 8px;
+          "
+        >
+          <span class="material-symbols-outlined">cloud_upload</span>
+          Save
+        </button>
+        <button class="btn btn-primary" id="pdf-btn">
+          <span class="material-symbols-outlined">download</span>
+          Download PDF
+        </button>
+        <button class="btn btn-danger" onclick="doLogout()">
+          <span class="material-symbols-outlined">logout</span> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- MOBILE BOTTOM TABS -->
+    <div id="mobile-tabs" class="hidden">
+      <!-- Navigation Tabs (show active highlight based on current panel) -->
+      <button
+        class="mob-tab mob-nav-tab"
+        id="mob-history-tab"
+        onclick="window.location.href = 'history.html'"
+      >
+        <span class="material-symbols-outlined">history</span>
+        History
+      </button>
+      <button
+        class="mob-tab mob-nav-tab active"
+        id="mob-edit-tab"
+        onclick="showMobilePanel('edit')"
+      >
+        <span class="material-symbols-outlined">edit_note</span>
+        Edit
+      </button>
+      <button
+        class="mob-tab mob-nav-tab"
+        id="mob-preview-tab"
+        onclick="showMobilePanel('preview')"
+      >
+        <span class="material-symbols-outlined">article</span>
+        Preview
+      </button>
+      <!-- Action Buttons (never get active highlight — they trigger actions) -->
+      <button
+        class="mob-tab mob-action-tab"
+        id="mob-save-btn"
+        onclick="saveToCloud()"
+        title="Save to Cloud"
+      >
+        <span class="material-symbols-outlined">cloud_upload</span>
+        Save
+      </button>
+      <button
+        class="mob-tab mob-action-tab mob-tab-pdf"
+        id="mob-pdf-btn"
+        title="Download PDF"
+      >
+        <span class="material-symbols-outlined">picture_as_pdf</span>
+        PDF
+      </button>
+      <button
+        class="mob-tab mob-action-tab mob-tab-logout"
+        id="mob-logout-btn"
+        onclick="doLogout()"
+        title="Logout"
+      >
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </button>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="hidden">
+      <!-- SIDEBAR -->
+      <div id="sidebar">
+        <!-- ── FIXED INFO BANNER (toggle to show/hide rarely-changed sections) ── -->
+        <div
+          class="sb-fixed-banner"
+          id="fixed-info-banner"
+          onclick="toggleFixedInfo()"
+        >
+          <div class="sb-fixed-banner-left">
+            <span
+              class="material-symbols-outlined"
+              style="font-size: 18px; color: #10b981"
+              >lock</span
+            >
+            <div>
+              <div class="sb-fixed-banner-title">Fixed Info</div>
+              <div class="sb-fixed-banner-sub">
+                Your Business · Bank Details · Notes
+              </div>
+            </div>
+          </div>
+          <span
+            class="material-symbols-outlined sb-fixed-chevron"
+            id="fixed-chevron"
+            >expand_more</span
+          >
+        </div>
+
+        <!-- COLLAPSIBLE BLOCK: Your Business, Bank Details, Notes/Terms -->
+        <div id="fixed-info-block" style="display: none">
+          <!-- Your Business -->
+          <div class="sb-section">
+            <div class="sb-section-title">
+              <span class="material-symbols-outlined" style="font-size: 14px"
+                >storefront</span
+              >
+              Your Business
+            </div>
+            <div
+              class="logo-upload-area"
+              id="logo-upload-area"
+              title="Click to upload logo"
+            >
+              <input
+                type="file"
+                accept="image/*"
+                id="logo-file-input"
+                onchange="handleLogoUpload(event)"
+                style="display: none"
+              />
+              <img
+                id="logo-preview-sb"
+                class="logo-preview"
+                src="Logo.jpg"
+                alt="Logo"
+                style="display: block"
+              />
+              <div
+                id="logo-placeholder"
+                class="logo-placeholder"
+                style="display: none"
+              >
+                <span
+                  class="material-symbols-outlined"
+                  style="font-size: 28px; color: #334155"
+                  >add_photo_alternate</span
+                >
+                <div style="margin-top: 4px; font-size: 11px; color: #475569">
+                  Upload Logo
+                </div>
+              </div>
+            </div>
+            <span class="sb-label">Company Name</span>
+            <input
+              class="sb-input"
+              id="s-company"
+              placeholder="SK AGRO"
+              maxlength="60"
+              value="SK Agro Chemical"
+            />
+            <span class="sb-label">Address</span>
+            <input
+              class="sb-input"
+              id="s-address"
+              placeholder="Street, City, State - PIN"
+              value="Survey No.207/1, Nr. Balaji Agro, Shapar, Rajkot, Gujarat - 360024"
+            />
+            <div class="sb-row">
+              <div>
+                <span class="sb-label">Phone</span
+                ><input
+                  class="sb-input"
+                  id="s-phone"
+                  placeholder="+91 9999999999"
+                  value=""
+                />
+              </div>
+              <div>
+                <span class="sb-label">Email</span
+                ><input
+                  class="sb-input"
+                  id="s-email"
+                  placeholder="you@email.com"
+                  value="skagro3105@gmail.com"
+                />
+              </div>
+            </div>
+            <div class="sb-row">
+              <div>
+                <span class="sb-label">GSTIN</span
+                ><input
+                  class="sb-input"
+                  id="s-gstin"
+                  placeholder="GSTIN No."
+                  value="24AERFS1718Q1ZB"
+                />
+              </div>
+              <div>
+                <span class="sb-label">Authorized By</span
+                ><input
+                  class="sb-input"
+                  id="s-signatory"
+                  placeholder="Name"
+                  value="SK Agro Chemical"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank Details -->
+          <div class="sb-section">
+            <div class="sb-section-title">
+              <span class="material-symbols-outlined" style="font-size: 14px"
+                >account_balance</span
+              >
+              Bank Details
+            </div>
+            <span class="sb-label">Bank Name</span>
+            <input
+              class="sb-input"
+              id="s-bank-name"
+              placeholder="e.g. State Bank of India"
+            />
+            <div class="sb-row">
+              <div>
+                <span class="sb-label">Account No.</span
+                ><input
+                  class="sb-input"
+                  id="s-bank-acc"
+                  placeholder="000123456789"
+                />
+              </div>
+              <div>
+                <span class="sb-label">IFSC Code</span
+                ><input
+                  class="sb-input"
+                  id="s-bank-ifsc"
+                  placeholder="SBIN0001234"
+                />
+              </div>
+            </div>
+            <span class="sb-label">UPI ID</span>
+            <input
+              class="sb-input"
+              id="s-upi"
+              placeholder="yourname@bank"
+              onchange="updateQR()"
+            />
+          </div>
+
+          <!-- Notes / Terms -->
+          <div class="sb-section">
+            <div class="sb-section-title">
+              <span class="material-symbols-outlined" style="font-size: 14px"
+                >notes</span
+              >
+              Notes / Terms
+            </div>
+            <span class="sb-label">Intro Message</span>
+            <textarea
+              class="sb-input sb-textarea"
+              id="s-intro"
+              placeholder="Dear Sir/Mam, Thank you for your inquiry..."
+              oninput="updateIntro()"
+            >
+Dear Sir/Mam,
+                        Thank you for your valuable inquiry. We are pleased to quote as below:</textarea
+            >
+            <span class="sb-label">Terms &amp; Conditions</span>
+            <textarea
+              class="sb-input sb-textarea"
+              id="s-terms"
+              placeholder="Payment within 30 days. Goods once sold will not be returned."
+              oninput="updateTerms()"
+            >
+                        We hope you find our offer to be in line with your requirement. 
+                        Your goods will be dispatched within 2-3 days after payment is received. 
+                        Wednesday and Sunday Company Holiday.</textarea
+            >
+          </div>
+        </div>
+        <!-- /fixed-info-block -->
+
+        <!-- ── INVOICE DETAILS ── -->
+        <div class="sb-section">
+          <div class="sb-section-title">
+            <span class="material-symbols-outlined" style="font-size: 14px"
+              >receipt_long</span
+            >
+            Invoice Details
+          </div>
+          <div class="sb-row">
+            <div>
+              <span class="sb-label">Invoice #</span
+              ><input class="sb-input" id="s-inv-num" placeholder="001" />
+            </div>
+            <div>
+              <span class="sb-label">Date</span
+              ><input class="sb-input" id="s-inv-date" type="date" />
+            </div>
+          </div>
+          <span class="sb-label">Due Date (optional)</span>
+          <input class="sb-input" id="s-due-date" type="date" />
+        </div>
+
+        <!-- ── BILL TO (CLIENT) ── -->
+        <div class="sb-section">
+          <div class="sb-section-title">
+            <span class="material-symbols-outlined" style="font-size: 14px"
+              >person</span
+            >
+            Bill To (Client)
+          </div>
+          <span class="sb-label">Client Name / Company</span>
+          <input
+            class="sb-input"
+            id="s-client-name"
+            placeholder="Receiver Name"
+          />
+          <span class="sb-label">Address</span>
+          <input
+            class="sb-input"
+            id="s-client-addr"
+            placeholder="City, State"
+          />
+          <div class="sb-row">
+            <div>
+              <span class="sb-label">Phone</span
+              ><input
+                class="sb-input"
+                id="s-client-phone"
+                placeholder="Phone"
+              />
+            </div>
+            <div>
+              <span class="sb-label">GSTIN</span
+              ><input
+                class="sb-input"
+                id="s-client-gstin"
+                placeholder="GSTIN (opt.)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── ITEMS / PRODUCTS (mobile only — shown here; desktop uses inline table) ── -->
+        <div class="sb-section" id="sb-items-section">
+          <div class="sb-section-title">
+            <span class="material-symbols-outlined" style="font-size: 14px"
+              >inventory_2</span
+            >
+            Items / Products
+          </div>
+          <div id="mob-items-list"></div>
+          <button class="mob-add-item-btn" onclick="addRow()">
+            <span class="material-symbols-outlined" style="font-size: 18px"
+              >add_circle</span
+            >
+            Add Item
+          </button>
+        </div>
+
+        <!-- ── TAX & CHARGES ── -->
+        <div class="sb-section">
+          <div class="sb-section-title">
+            <span class="material-symbols-outlined" style="font-size: 14px"
+              >percent</span
+            >
+            Tax &amp; Charges
+          </div>
+
+          <!-- GST Rate Dropdown -->
+          <span class="sb-label">GST Rate</span>
+          <select
+            class="sb-input"
+            id="gst-rate"
+            onchange="recalcAll()"
+            style="cursor: pointer"
+          >
+            <option value="0">None (0%)</option>
+            <option value="5">GST @ 5%</option>
+            <option value="12">GST @ 12%</option>
+            <option value="18" selected>GST @ 18%</option>
+            <option value="28">GST @ 28%</option>
+          </select>
+          <div class="toggle-row">
+            <span class="toggle-label">Show QR Code</span>
+            <label class="toggle"
+              ><input type="checkbox" id="qr-toggle" onchange="updateQR()" />
+              <div class="toggle-track"></div>
+              <div class="toggle-nub"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+      <!-- /sidebar -->
+
+      <!-- MAIN — A4 paper -->
+      <div id="main">
+        <div id="invoice-paper">
+          <!-- HEADER -->
+          <div class="paper-header">
+            <!-- Left: Logo only -->
+            <div class="paper-logo-section">
+              <img id="paper-logo" src="logo.jpg" alt="Logo" />
+            </div>
+
+            <!-- Center: Company name + details -->
+            <div class="paper-company-center">
+              <div class="paper-company-name" id="p-company">Company Name</div>
+              <div class="paper-company-sub">
+                <span id="p-address"></span><br />
+                <span id="p-phone"></span><br />
+                <span id="p-email"></span><br />
+                <span
+                  id="p-gstin"
+                  style="font-weight: 600; color: #064e3b"
+                ></span>
+              </div>
+            </div>
+
+            <!-- Right: Invoice badge + meta -->
+            <div class="paper-invoice-box">
+              <div class="invoice-badge">INVOICE</div>
+              <div class="paper-meta">
+                Invoice&nbsp;# <strong id="p-inv-num">001</strong><br />
+                Date: <strong id="p-inv-date">—</strong><br />
+                <span id="p-due-line" style="display: none"
+                  >Due: <strong id="p-due-date"></strong
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BILL TO -->
+          <div class="paper-to">
+            <div>
+              <div class="to-label">Bill From</div>
+              <div class="to-main" id="p-from-name">Company Name</div>
+              <div class="to-sub" id="p-from-addr"></div>
+            </div>
+            <div>
+              <div class="to-label">Bill To</div>
+              <div class="to-main" id="p-client-name">Client Name</div>
+              <div class="to-sub" id="p-client-sub"></div>
+            </div>
+          </div>
+
+          <!-- INTRO -->
+          <div class="paper-intro" id="p-intro">
+            Dear Sir/Mam, Thank you for your valuable inquiry. We are pleased to
+            quote as below:
+          </div>
+
+          <!-- ITEMS TABLE -->
+          <div class="table-scroll-wrap">
+            <table class="items-table" id="items-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Brand Name</th>
+                  <th>Product Name</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total (₹)</th>
+                  <th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="items-tbody"></tbody>
+            </table>
+          </div>
+
+          <button
+            class="add-row-btn no-print"
+            id="add-row-btn"
+            onclick="addRow()"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px"
+              >add</span
+            >
+            Add Item
+          </button>
+
+          <!-- TOTALS -->
+          <div class="totals-wrap" style="margin-top: 16px">
+            <div class="totals-box">
+              <div class="totals-row">
+                <span>Subtotal</span><span id="p-subtotal">₹0.00</span>
+              </div>
+              <div class="totals-row" id="p-gst-row" style="display: none">
+                <span id="p-gst-label">GST (18%)</span
+                ><span id="p-gst">₹0.00</span>
+              </div>
+              <div class="totals-grand">
+                <span>GRAND TOTAL</span><span id="p-grand">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- NOTES/TERMS (no heading) -->
+          <div class="paper-notes" id="p-terms" style="display: none"></div>
+
+          <!-- FOOTER: bank + QR + sig -->
+          <div class="paper-footer">
+            <div class="bank-block" id="bank-block">
+              <div class="bank-title">Payment Details</div>
+              <div class="bank-row">
+                <strong>Bank:</strong> <span id="p-bank-name">—</span>
+              </div>
+              <div class="bank-row">
+                <strong>A/C No.:</strong> <span id="p-bank-acc">—</span>
+              </div>
+              <div class="bank-row">
+                <strong>IFSC:</strong> <span id="p-bank-ifsc">—</span>
+              </div>
+              <div class="bank-row">
+                <strong>UPI:</strong> <span id="p-upi">—</span>
+              </div>
+            </div>
+            <div class="qr-block" id="qr-block" style="display: none">
+              <img
+                id="qr-img"
+                src="qr-code.jpg"
+                alt="QR Code"
+                style="
+                  width: 110px;
+                  height: 110px;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 8px;
+                  display: block;
+                  margin: 0 50px 0 0;
+                "
+              />
+              <div class="qr-label">Scan to Pay</div>
+            </div>
+            <div class="sig-block">
+              <div class="sig-label">Authorized Signature</div>
+              <img
+                id="sig-img"
+                src="signature.jpg"
+                alt="Signature"
+                style="
+                  max-width: 120px;
+                  max-height: 40px;
+                  margin-bottom: 6px;
+                  border-radius: 4px;
+                  border: 1px solid #e2e8f0;
+                "
+              />
+              <div class="sig-name" id="p-signatory">SK Agro Chemical</div>
+            </div>
+          </div>
+          <script>
+            // ─── PREDEFINED USERS ────────────────────────────────
+            // Duplicate USERS declaration removed
+            function updateIntro() {
+              const intro = document.getElementById("s-intro").value;
+              document.getElementById("p-intro").innerText =
+                intro ||
+                "Dear Sir/Mam,\nThank you for your valuable inquiry. We are pleased to quote as below:";
+            }
+            function updateTerms() {
+              const terms = document.getElementById("s-terms").value;
+              const pTerms = document.getElementById("p-terms");
+              if (terms) {
+                pTerms.style.display = "";
+                pTerms.textContent = terms;
+              } else {
+                pTerms.style.display = "none";
+                pTerms.textContent = "";
+              }
+            }
+            // Initialize values on page load
+            window.addEventListener("DOMContentLoaded", function () {
+              updateIntro();
+              updateTerms();
+            });
+          </script>
+        </div>
+        <!-- /invoice-paper -->
+      </div>
+      <!-- /main -->
+    </div>
+    <!-- /app -->
+
+    <script src="js/main.js"></script>
+  </body>
+</html>

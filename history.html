@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice History — SK Agro Chemicals</title>
+
+    <meta name="description" content="SK Agro Chemicals Invoice History." />
+    <!-- Favicon & PWA setup (same as index.html) -->
+    <link rel="shortcut icon" href="/public/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SK Agro" />
+    <link rel="manifest" href="/public/manifest.json" />
+    <meta name="theme-color" content="#10b981" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <!-- Reuse the same global styles -->
+    <link rel="stylesheet" href="css/style.css" id="main-style">
+    <!-- Inline extra styles specifically for history page -->
+    <style>
+        body { background: #f1f5f9; color: #1e293b; }
+        
+        #history-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 64px;
+            background: #1e293b;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .history-container {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .history-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 16px;
+            width: 300px;
+            max-width: 100%;
+            transition: all 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+
+        .history-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            padding: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .history-table td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .history-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-saved { background: #dcfce7; color: #166534; }
+        .badge-draft { background: #fef9c3; color: #854d0e; }
+
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        
+        .action-cell {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        /* Responsive Mobile Layout (Card view) */
+        @media (max-width: 768px) {
+            #history-toolbar {
+                padding: 0 12px;
+            }
+            .toolbar-brand span {
+                font-size: 16px !important;
+                white-space: nowrap;
+            }
+            #history-toolbar .btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .history-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                width: 100%;
+            }
+            .history-table thead {
+                display: none;
+            }
+            .history-table, .history-table tbody, .history-table tr, .history-table td {
+                display: block;
+                width: 100%;
+            }
+            .history-table tr {
+                margin-bottom: 16px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                background: #fff;
+            }
+            .history-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 12px;
+                text-align: right;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .history-table td:last-child {
+                border-bottom: none;
+                justify-content: flex-end;
+                background: #f8fafc;
+            }
+            .history-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #64748b;
+                font-size: 11px;
+                text-transform: uppercase;
+                text-align: left;
+                margin-right: 12px;
+            }
+            .action-cell {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="history-toolbar">
+        <div class="toolbar-brand" style="display:flex;align-items:center;gap:10px; cursor:pointer;" onclick="goBack()">
+            <img src="public/logo.jpg" alt="SK Agro Chemicals" style="height:36px;width:36px;object-fit:contain;border-radius:6px;" />
+            <span style="font-weight:700;font-size:18px;">SK Agro<span style="color:#f1f5f9;font-weight:400"> Chemicals</span></span>
+        </div>
+        <button class="btn btn-ghost" onclick="goBack()" style="color:#fff; border-color:#334155">
+            <span class="material-symbols-outlined">arrow_back</span> Back to Builder
+        </button>
+    </div>
+
+    <div class="history-container">
+        <div class="history-header">
+            <div class="history-title">
+                <span class="material-symbols-outlined" style="color:#10b981;font-size:28px">history</span>
+                Invoice History
+            </div>
+            <div class="search-box">
+                <span class="material-symbols-outlined" style="color:#94a3b8;font-size:20px">search</span>
+                <input type="text" id="history-search" placeholder="Search customer, inv #..." autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="history-card">
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Inv #</th>
+                            <th>Date</th>
+                            <th>Customer Name</th>
+                            <th>Mobile</th>
+                            <th style="text-align:right">Total Amount</th>
+                            <th style="text-align:right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <tr id="loading-row">
+                            <td colspan="7" style="text-align:center; padding: 40px; color:#64748b;">
+                                <span class="material-symbols-outlined" style="animation:spin 1s linear infinite; display:inline-block; vertical-align:middle; margin-right:8px;">autorenew</span> Loading invoices...
+                            </td>
+                        </tr>
+                        <tr id="error-row" style="display:none">
+                            <td colspan="7" style="text-align:center; padding: 40px; color:#ef4444;">
+                                Failed to load history. Please check your backend connection.
+                            </td>
+                        </tr>
+                        <tr id="empty-row" style="display:none">
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <span class="material-symbols-outlined" style="font-size:48px;color:#cbd5e1;margin-bottom:12px;">receipt_long</span>
+                                    <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:4px;">No Invoices Found</div>
+                                    <div style="font-size:13px;">Save an invoice in the builder to see it here.</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/history.js"></script>
+    
+    <style>
+        @keyframes spin { to { transform: rotate(360deg) } }
+    </style>
+</body>
+</html>
