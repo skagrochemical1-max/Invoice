@@ -675,9 +675,24 @@ function bindSidebarInputs() {
     autoSave();
   });
 
-  // Client
-  $("s-client-name").addEventListener("input", () => {
-    $("p-client-name").textContent = $("s-client-name").value || "Client Name";
+  // Client — auto title-case: first letter of every word uppercase, rest lowercase
+  $("s-client-name").addEventListener("input", function () {
+    const el = this;
+    const start = el.selectionStart;   // save cursor position
+    const end   = el.selectionEnd;
+    const titled = el.value
+      .split(" ")
+      .map((word) =>
+        word.length > 0
+          ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+          : ""
+      )
+      .join(" ");
+    if (el.value !== titled) {
+      el.value = titled;
+      el.setSelectionRange(start, end); // restore cursor so editing mid-word still works
+    }
+    $("p-client-name").textContent = el.value || "Client Name";
     autoSave();
   });
   $("s-client-addr").addEventListener("input", () => {
