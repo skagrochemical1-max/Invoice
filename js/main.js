@@ -576,12 +576,14 @@ async function bootApp(loggedInMobile) {
   const hash = window.location.hash;
   if (hash.startsWith("#edit=")) {
     const uniqueId = hash.replace("#edit=", "");
-    window.location.hash = ""; // clear hash so reload works normally
 
     toast("Loading invoice...", "show");
     try {
       const invoiceData = await apiGetInvoice(uniqueId);
       if (!invoiceData) throw new Error("Invoice not found");
+
+      // Clear hash only AFTER successful load so user can retry on failure
+      window.location.hash = "";
 
       // Attach the row uniqueId for legacy formatted invoices so they can overwrite themselves
       if (!invoiceData.meta) invoiceData._legacyUniqueId = uniqueId;
@@ -589,10 +591,11 @@ async function bootApp(loggedInMobile) {
       restoreInvoiceUI(invoiceData);
       // Mark that this session started from a history edit
       window._invoiceLoadedFromHistory = true;
-      toast("Invoice loaded");
+      toast("Invoice loaded ✓");
     } catch (e) {
-      toast("Error loading invoice", "error");
-      console.error(e);
+      console.error("Failed to load invoice:", e);
+      toast("Failed to load: " + (e.message || "Server error. Please try again."), "error");
+      window.location.hash = ""; // clear hash after error too
       bootDefault();
     }
   } else {

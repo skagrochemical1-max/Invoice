@@ -14,7 +14,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpPFZIbFppuozs
 const API_SECRET = 'sk_agro_secure_key_2026'; // Added Security Token
 
 // Request timeout in milliseconds
-const API_TIMEOUT_MS = 15000;
+const API_TIMEOUT_MS = 25000;
 
 // ─── CORE FETCH WRAPPER ───────────────────────────────────────────────────────
 /**
@@ -83,8 +83,21 @@ async function apiGetInvoices(filters = {}) {
  */
 async function apiGetInvoice(uniqueId) {
   if (!uniqueId) throw new Error('Invoice ID is required.');
-  const result = await _apiFetch({ action: 'getInvoice', id: uniqueId });
-  return result.data;
+  // Retry once on failure (transient network errors are common on first load)
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await _apiFetch({ action: 'getInvoice', id: uniqueId });
+      if (!result.data) throw new Error('Invoice data empty in response');
+      return result.data;
+    } catch (err) {
+      lastError = err;
+      if (attempt === 0) {
+        await new Promise(r => setTimeout(r, 1200)); // wait 1.2s before retry
+      }
+    }
+  }
+  throw lastError;
 }
 
 
