@@ -4,13 +4,13 @@
   "description": "Professional Invoice Generator for SK Agro Chemicals",
   "icons": [
     {
-      "src": "/public/android-chrome-192x192.png",
+      "src": "public/android-chrome-192x192.jpg",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/public/android-chrome-512x512.png",
+      "src": "public/android-chrome-512x512.jpg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

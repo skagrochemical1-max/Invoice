@@ -10,31 +10,31 @@
   "categories": ["business", "finance"],
   "icons": [
     {
-      "src": "/public/favicon-16x16.png",
+      "src": "public/favicon-16x16.jpg",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "/public/favicon-32x32.png",
+      "src": "public/favicon-32x32.jpg",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/public/android-chrome-192x192.png",
+      "src": "public/android-chrome-192x192.jpg",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/public/android-chrome-512x512.png",
+      "src": "public/android-chrome-512x512.jpg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/public/maskable-icon.png",
+      "src": "public/maskable-icon.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     }
   ],
