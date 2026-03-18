@@ -15,14 +15,13 @@ function qtyBackspaceHandler(e, input) {
 }
 
 function resetQtyIfEmpty(input) {
-  // If left empty after edit, reset to 1
-  if (!input.value || input.value === "0") {
-    input.value = "1";
-    // Update row data
+  // Leave empty if user clears the field — do not force back to 1
+  if (input.value === "0") {
+    input.value = "";
     const rid = input.dataset.rid;
     const row = rows.find(r => r.id === rid);
     if (row) {
-      row.qty = 1;
+      row.qty = 0;
       recalcAll();
       autoSave();
     }
@@ -841,7 +840,7 @@ function addRow(data = {}) {
     brand: data.brand || "",
     name: data.name || "",
     desc: data.desc || "",
-    qty: data.qty || 1,
+    qty: data.qty != null ? data.qty : "",
     price: data.price || 0,
     total: data.total || 0,
   });
@@ -859,7 +858,7 @@ function renderRows() {
       <td><input class="tbl-input" placeholder="Product Name" value="${esc(row.name)}" data-rid="${row.id}" data-field="name" autocomplete="off" onfocus="showAutocomplete(this)" oninput="filterAutocomplete(); updateRowField(this)" onchange="updateRowField(this)"/>
         <div style="margin-top:2px"><input class="tbl-input" style="font-size:10px;color:#94a3b8" placeholder="Desc (opt.)" value="${esc(row.desc)}" data-rid="${row.id}" data-field="desc" onchange="updateRowField(this)" oninput="updateRowField(this)"/></div>
       </td>
-      <td><input class="tbl-input num-input" type="number" min="1" value="${row.qty}" data-rid="${row.id}" data-field="qty" onchange="calcRow(this)" oninput="calcRow(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)"/></td>
+      <td><input class="tbl-input num-input" type="number" min="0" placeholder="Qty" value="${row.qty}" data-rid="${row.id}" data-field="qty" onchange="calcRow(this)" oninput="calcRow(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)"/></td>
       <td><input class="tbl-input price-input" type="number" min="0" step="0.01" value="${row.price || ""}" placeholder="0.00" data-rid="${row.id}" data-field="price" onchange="calcRow(this)" oninput="calcRow(this)"/></td>
       <td><span class="row-total" id="rt_${row.id}">${row.total > 0 ? "₹" + INR.format(row.total) : "—"}</span></td>
       <td class="no-print"><button class="remove-row" onclick="removeRow('${row.id}')" title="Remove">✕</button></td>`;
@@ -900,7 +899,7 @@ function renderMobItems() {
                     <div class="sb-row">
                         <div>
                             <span class="sb-label">Quantity</span>
-                            <input class="sb-input" type="number" min="1" placeholder="1" value="${row.qty}"
+                            <input class="sb-input" type="number" min="0" placeholder="Qty" value="${row.qty}"
                               data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)" />
                         </div>
                         <div>
