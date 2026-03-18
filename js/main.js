@@ -3,6 +3,8 @@ const CREDENTIALS = { admin: "admin123", user: "invoice2024" };
 const LS_KEY = "inv_builder_data";
 const LS_INV_NUM_KEY = "inv_num_counter"; // tracks the last-used invoice number
 let qrInstance = null;
+// Track if invoice is saved since last edit
+window._invoiceSavedOnce = false;
 var rows = [];
 let logoDataUrl = null;
 
@@ -56,6 +58,22 @@ async function fetchInventory() {
 // ─── AUTOCOMPLETE UI LOGIC ─────────────────────────────
 let currentAcInput = null;
 let acSelectedIndex = -1;
+// Mark invoice as unsaved on any edit
+function markInvoiceUnsaved() {
+  window._invoiceSavedOnce = false;
+}
+// Attach markInvoiceUnsaved to all relevant input fields (run after DOM ready)
+document.addEventListener("DOMContentLoaded", function() {
+  ["sidebar", "main"].forEach(function(parentId) {
+    const parent = document.getElementById(parentId);
+    if (parent) {
+      parent.querySelectorAll("input, textarea, select").forEach(function(el) {
+        el.addEventListener("input", markInvoiceUnsaved);
+        el.addEventListener("change", markInvoiceUnsaved);
+      });
+    }
+  });
+});
 
 function closeAutocomplete() {
   const dropdown = $("autocomplete-dropdown");
@@ -549,56 +567,7 @@ async function bootApp() {
   // Save button logic: prevent duplicate invoices
   const saveBtn = document.getElementById("save-cloud-btn");
   if (saveBtn) {
-    saveBtn.onclick = async function () {
-      // Show animation
-      saveBtn.disabled = true;
-      const original = saveBtn.innerHTML;
-      saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:20px">autorenew</span> Saving...';
-      // Mobile save button
-      const mobSaveBtn = document.getElementById("mob-save-btn");
-      let mobOriginal = mobSaveBtn ? mobSaveBtn.innerHTML : null;
-      if (mobSaveBtn) {
-        mobSaveBtn.disabled = true;
-        mobSaveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:20px">autorenew</span>';
-      }
-      try {
-        const invoiceData = extractInvoiceJSON(window.currentInvoiceId || null);
-        // Check for existing invoice by invoiceNumber, uniqueId, or customer name + date
-        let existing = null;
-        try {
-          const all = await apiGetInvoices();
-          existing = all.find(inv =>
-            (inv.invoiceNumber === invoiceData.meta.invoiceNumber) ||
-            (inv.uniqueId === invoiceData.meta.uniqueId) ||
-            (
-              inv.customerName && inv.date &&
-              inv.customerName === invoiceData.customer.name &&
-              inv.date === invoiceData.meta.date
-            )
-          );
-        } catch (e) {}
-        if (existing && existing.uniqueId) {
-          // Update existing invoice
-          invoiceData.meta.uniqueId = existing.uniqueId;
-          await apiUpdateInvoice(invoiceData);
-          toast("Invoice updated (no duplicate)", "show");
-        } else {
-          // Save new invoice
-          await apiSaveInvoice(invoiceData);
-          toast("Invoice saved", "show");
-        }
-        // Refresh history cache
-        localStorage.removeItem('invoice_history_cache');
-      } finally {
-        // Restore button
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = original;
-        if (mobSaveBtn) {
-          mobSaveBtn.disabled = false;
-          mobSaveBtn.innerHTML = mobOriginal;
-        }
-      }
-    };
+    saveBtn.onclick = () => saveToCloud();
   }
 
   // Init mobile layout
@@ -1019,14 +988,14 @@ function updateQR() {
 // ─── PDF DOWNLOAD ─────────────────────────────────────────
 async function downloadPDF() {
   // ── AUTO-SAVE before downloading ──────────────────────
-  // If the invoice has never been saved to cloud, or it was loaded
-  // from history and re-edited without explicitly saving, save it
-  // automatically now so nothing is lost.
-  try {
-    await saveToCloud(true /*isSilent*/);
-  } catch (autoSaveErr) {
-    console.warn("Auto-save before PDF failed (non-critical):", autoSaveErr);
-    // Continue with PDF generation even if auto-save fails
+  // Only auto-save if not already saved since last edit
+  if (!window._invoiceSavedOnce) {
+    try {
+      await saveToCloud(true /*isSilent*/);
+    } catch (autoSaveErr) {
+      console.warn("Auto-save before PDF failed (non-critical):", autoSaveErr);
+      // Continue with PDF generation even if auto-save fails
+    }
   }
 
   const btn = $("pdf-btn");
@@ -1608,22 +1577,48 @@ async function saveToCloud(isSilent = false) {
       return;
     }
 
+    // --- DUPLICATE DETECTION / ID RECOVERY ---
+    // If we don't have currentInvoiceId in memory, try to find an existing record in the cloud
+    // to prevent double-saving (especially important if user saves, refreshes, then clicks download).
+    if (!window.currentInvoiceId) {
+      try {
+        const cloudInvoices = await apiGetInvoices();
+        const existingRow = cloudInvoices.find(inv =>
+          (inv.invoiceNumber === payload.meta.invoiceNumber) ||
+          (inv.customerName && inv.date &&
+           inv.customerName === payload.customer.name &&
+           inv.date === payload.meta.date)
+        );
+        if (existingRow && existingRow.uniqueId) {
+          window.currentInvoiceId = existingRow.uniqueId;
+          payload.meta.uniqueId = existingRow.uniqueId;
+        }
+      } catch (recoveryErr) {
+        console.warn("Could not check for existing record:", recoveryErr);
+      }
+    }
+
     let response;
+    let isUpdate = false;
     if (window.currentInvoiceId) {
       // Update existing
+      payload.meta.uniqueId = window.currentInvoiceId;
       response = await apiUpdateInvoice(payload);
+      isUpdate = true;
     } else {
       // Save new
       response = await apiSaveInvoice(payload);
-      window.currentInvoiceId = response.uniqueId; // store ID so next save updates it
+      window.currentInvoiceId = response.uniqueId; // Ensure we track this for future saves/downloads
     }
+    // Mark as saved
+    window._invoiceSavedOnce = true;
 
     if (!isSilent) {
-      toast("Invoice saved to cloud ✓");
+      toast(isUpdate ? "Invoice updated ✓" : "Invoice saved to cloud ✓");
     } else {
       if (btn) {
         btn.innerHTML =
-          '<span class="material-symbols-outlined" style="color:#dcfce7">check_circle</span> Saved';
+          `<span class="material-symbols-outlined" style="color:#dcfce7">check_circle</span> ${isUpdate ? 'Updated' : 'Saved'}`;
       }
       setTimeout(() => {
         if (btn) {
@@ -1632,6 +1627,9 @@ async function saveToCloud(isSilent = false) {
         }
       }, 2000);
     }
+
+    // Refresh history cache so the new/updated record shows up immediately in history list
+    localStorage.removeItem('invoice_history_cache');
 
     // Track invoice number locally just to keep sequential generation smooth
     const usedNum = parseInt(payload.meta.invoiceNumber, 10);
