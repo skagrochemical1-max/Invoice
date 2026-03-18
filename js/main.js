@@ -40,7 +40,7 @@ let logoDataUrl = null;
 // ─── GOOGLE SHEETS INVENTORY ──────────────────────────
 // Replace this URL with your published CSV link:
 const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3fr73zic9149bFs5vc4QQ2uyfgvuuvTHpNFyhjrsW9xwfA4u-Ctv--c0YSuU5bbpeZhdcxcVvshjf/pub?output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTHl9v6dmoNeheKziKUjWvIlqF74Pe87EgE6lrIwGm_HVUL295AL6gAkLyF7odFMRDfKMegiCEMdcF8/pub?output=csv";
 let inventoryData = [];
 
 async function fetchInventory() {
