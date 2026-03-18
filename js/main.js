@@ -902,7 +902,7 @@ function renderMobItems() {
                             <span class="sb-label">Quantity</span>
                             <input class="sb-input" type="number" min="1" placeholder="1" value="${row.qty}"
                               data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)" />
-
+                        </div>
                         <div>
                             <span class="sb-label">Unit Price (₹)</span>
                             <input class="sb-input" type="number" min="0" step="0.01" placeholder="0.00" value="${row.price || ""}"
