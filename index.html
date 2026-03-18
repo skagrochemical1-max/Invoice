@@ -720,10 +720,8 @@ Dear Sir/Mam,
               </div>
             </div>
             <div class="qr-block" id="qr-block" style="display: none">
-              <img
-                id="qr-img"
-                src="qr-code.jpg"
-                alt="QR Code"
+              <div
+                id="qr-canvas"
                 style="
                   width: 110px;
                   height: 110px;
@@ -731,8 +729,9 @@ Dear Sir/Mam,
                   border-radius: 8px;
                   display: block;
                   margin: 0 50px 0 0;
+                  overflow: hidden;
                 "
-              />
+              ></div>
               <div class="qr-label">Scan to Pay</div>
             </div>
             <div class="sig-block">

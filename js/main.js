@@ -376,6 +376,7 @@ const INR = new Intl.NumberFormat("en-IN", {
 
 function toast(msg, type = "") {
   const t = $("toast");
+  if (!t) { console.warn("toast element not found:", msg); return; }
   t.textContent = msg;
   t.className = type === "error" ? "error show" : "show";
   setTimeout(() => (t.className = ""), 2500);
@@ -852,6 +853,7 @@ function addRow(data = {}) {
 
 function renderRows() {
   const tbody = $("items-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
@@ -1027,12 +1029,16 @@ function recalcAll() {
 
 // ─── QR CODE ─────────────────────────────────────────────
 function updateQR() {
-  const show = $("qr-toggle").checked;
-  $("qr-block").style.display = show ? "" : "none";
+  const qrToggle = $("qr-toggle");
+  const qrBlock = $("qr-block");
+  if (!qrToggle || !qrBlock) return;
+  const show = qrToggle.checked;
+  qrBlock.style.display = show ? "" : "none";
   if (!show) return;
-  const upi = $("s-upi").value.trim() || "business@bank";
-  const name = $("s-company").value.trim() || "Business";
+  const upi = $("s-upi") ? $("s-upi").value.trim() || "business@bank" : "business@bank";
+  const name = $("s-company") ? $("s-company").value.trim() || "Business" : "Business";
   const canvas = $("qr-canvas");
+  if (!canvas) return;
   canvas.innerHTML = "";
   qrInstance = null;
   try {
