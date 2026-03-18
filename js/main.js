@@ -93,11 +93,11 @@ function markInvoiceUnsaved() {
   window._invoiceSavedOnce = false;
 }
 // Attach markInvoiceUnsaved to all relevant input fields (run after DOM ready)
-document.addEventListener("DOMContentLoaded", function() {
-  ["sidebar", "main"].forEach(function(parentId) {
+document.addEventListener("DOMContentLoaded", function () {
+  ["sidebar", "main"].forEach(function (parentId) {
     const parent = document.getElementById(parentId);
     if (parent) {
-      parent.querySelectorAll("input, textarea, select").forEach(function(el) {
+      parent.querySelectorAll("input, textarea, select").forEach(function (el) {
         el.addEventListener("input", markInvoiceUnsaved);
         el.addEventListener("change", markInvoiceUnsaved);
       });
@@ -502,7 +502,7 @@ function setUserPhone(mobile) {
       mobInfo.style = "font-size:12px;color:#334155;margin-top:2px;";
       phoneInput.parentNode.appendChild(mobInfo);
     }
-    mobInfo.textContent = mobile ? `Logged-in Mobile: ${mobile}` : "";
+    // mobInfo.textContent = mobile ? `Logged-in Mobile: ${mobile}` : "";
   }
   // Preview (paper)
   const paperPhone = document.getElementById("p-phone");
@@ -534,9 +534,9 @@ async function loadDefaultLogo() {
   const candidates = ["logo.jpg", "public/logo.jpg"];
 
   // Always ensure logo elements stay visible with an <img> src fallback chain
-  const sbImg    = $("logo-preview-sb");
+  const sbImg = $("logo-preview-sb");
   const paperImg = $("paper-logo");
-  const navImg   = $("navbar-logo");
+  const navImg = $("navbar-logo");
   const loginImg = $("brand-logo");
 
   // Make all logo images visible immediately — don't wait for async
@@ -554,9 +554,9 @@ async function loadDefaultLogo() {
         const reader = new FileReader();
         reader.onload = (ev) => {
           logoDataUrl = ev.target.result;
-          if (sbImg)    { sbImg.src    = logoDataUrl; sbImg.style.display    = "block"; }
+          if (sbImg) { sbImg.src = logoDataUrl; sbImg.style.display = "block"; }
           if (paperImg) { paperImg.src = logoDataUrl; paperImg.style.display = "block"; }
-          if (navImg)   { navImg.src   = logoDataUrl; navImg.style.display   = "block"; }
+          if (navImg) { navImg.src = logoDataUrl; navImg.style.display = "block"; }
           if (loginImg) { loginImg.src = logoDataUrl; loginImg.style.display = "block"; }
           resolve();
         };
@@ -708,7 +708,7 @@ function bindSidebarInputs() {
   $("s-client-name").addEventListener("input", function () {
     const el = this;
     const start = el.selectionStart;   // save cursor position
-    const end   = el.selectionEnd;
+    const end = el.selectionEnd;
     const titled = el.value
       .split(" ")
       .map((word) =>
@@ -797,6 +797,18 @@ function refreshPaper() {
   if (logoDataUrl) {
     $("paper-logo").src = logoDataUrl;
     $("paper-logo").style.display = "block";
+  }
+  const auth = localStorage.getItem("inv_auth");
+  const mobile = localStorage.getItem("inv_user_mobile");
+  if (auth && mobile) {
+    const sPhone = $("s-phone");
+    if (sPhone && sPhone.value !== mobile) {
+      sPhone.value = mobile;
+    }
+    const pPhone = $("p-phone");
+    if (pPhone) pPhone.textContent = mobile;
+    const pMobile = $("p-mobile");
+    if (pMobile) pMobile.textContent = mobile;
   }
   updateQR();
 }
@@ -890,52 +902,7 @@ function renderMobItems() {
                             <span class="sb-label">Quantity</span>
                             <input class="sb-input" type="number" min="1" placeholder="1" value="${row.qty}"
                               data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)" />
-                        // Ensure mobile number is shown everywhere after login
-                        window.addEventListener("DOMContentLoaded", () => {
-                          const auth = localStorage.getItem("inv_auth");
-                          const mobile = localStorage.getItem("inv_user_mobile");
-                          if (auth && (mobile || mobile === "")) {
-                            setUserPhone(mobile);
-                            showUserMobile(mobile);
-                            showProfileSymbol(auth);
-                            // Update preview and PDF
-                            const previewMobile = document.getElementById("p-mobile");
-                            if (previewMobile) {
-                              previewMobile.textContent = mobile || "—";
-                            }
-                          }
-                        });
-                        // Quantity input behaviors
-                        function selectQtyInput(input) {
-                          // Auto-select value on focus
-                          input.select();
-                        }
 
-                        function qtyBackspaceHandler(e, input) {
-                          // If Backspace is pressed and all is selected, clear
-                          if (e.key === "Backspace") {
-                            if (input.value && input.selectionStart === 0 && input.selectionEnd === input.value.length) {
-                              input.value = "";
-                              e.preventDefault();
-                            }
-                          }
-                        }
-
-                        function resetQtyIfEmpty(input) {
-                          // If left empty after edit, reset to 1
-                          if (!input.value || input.value === "0") {
-                            input.value = "1";
-                            // Update row data
-                            const rid = input.dataset.rid;
-                            const row = rows.find(r => r.id === rid);
-                            if (row) {
-                              row.qty = 1;
-                              recalcAll();
-                              autoSave();
-                            }
-                          }
-                        }
-                        </div>
                         <div>
                             <span class="sb-label">Unit Price (₹)</span>
                             <input class="sb-input" type="number" min="0" step="0.01" placeholder="0.00" value="${row.price || ""}"
@@ -1075,7 +1042,7 @@ function updateQR() {
       colorLight: "#fff",
       correctLevel: QRCode.CorrectLevel.M,
     });
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // ─── PDF DOWNLOAD ─────────────────────────────────────────
@@ -1466,7 +1433,7 @@ function loadSaved() {
       $("paper-logo").style.display = "block";
       $("logo-placeholder").style.display = "none";
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function clearAll() {
@@ -1677,8 +1644,8 @@ async function saveToCloud(isSilent = false) {
       const existingRow = cloudInvoices.find(inv =>
         (inv.invoiceNumber === payload.meta.invoiceNumber) ||
         (inv.customerName && inv.date &&
-         inv.customerName === payload.customer.name &&
-         inv.date === payload.meta.date)
+          inv.customerName === payload.customer.name &&
+          inv.date === payload.meta.date)
       );
       if (existingRow && existingRow.uniqueId) {
         window.currentInvoiceId = existingRow.uniqueId;
