@@ -461,11 +461,11 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─── DEFAULT LOGO LOADER ───────────────────────────────────
-// Converts Logo.jpg to a dataURL on boot so it appears in the
+// Converts logo.jpg to a dataURL on boot so it appears in the
 // paper preview AND in downloaded PDFs (html2canvas needs dataURL).
 async function loadDefaultLogo() {
   try {
-    const resp = await fetch("Logo.jpg");
+    const resp = await fetch("logo.jpg");
     if (!resp.ok) return;
     const blob = await resp.blob();
     return new Promise((resolve) => {
