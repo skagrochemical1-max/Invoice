@@ -1,3 +1,33 @@
+// Quantity input behaviors
+function selectQtyInput(input) {
+  // Auto-select value on focus
+  input.select();
+}
+
+function qtyBackspaceHandler(e, input) {
+  // If Backspace is pressed and all is selected, clear
+  if (e.key === "Backspace") {
+    if (input.value && input.selectionStart === 0 && input.selectionEnd === input.value.length) {
+      input.value = "";
+      e.preventDefault();
+    }
+  }
+}
+
+function resetQtyIfEmpty(input) {
+  // If left empty after edit, reset to 1
+  if (!input.value || input.value === "0") {
+    input.value = "1";
+    // Update row data
+    const rid = input.dataset.rid;
+    const row = rows.find(r => r.id === rid);
+    if (row) {
+      row.qty = 1;
+      recalcAll();
+      autoSave();
+    }
+  }
+}
 // ─── STATE ──────────────────────────────────────────────
 const CREDENTIALS = { admin: "admin123", user: "invoice2024" };
 const LS_KEY = "inv_builder_data";
