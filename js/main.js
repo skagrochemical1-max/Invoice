@@ -461,36 +461,48 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─── DEFAULT LOGO LOADER ───────────────────────────────────
-// Converts logo.jpg to a dataURL on boot so it appears in the
-// paper preview AND in downloaded PDFs (html2canvas needs dataURL).
+// Converts logo.jpg to a dataURL so html2canvas can render it in PDFs.
+// The logo is already visible via CSS display:block + HTML src attribute.
+// This function just upgrades it to a dataURL for PDF reliability.
 async function loadDefaultLogo() {
-  try {
-    const resp = await fetch("logo.jpg");
-    if (!resp.ok) return;
-    const blob = await resp.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        logoDataUrl = ev.target.result;
-        const sbImg = $("logo-preview-sb");
-        const paperImg = $("paper-logo");
-        if (sbImg) {
-          sbImg.src = logoDataUrl;
-          sbImg.style.display = "block";
-        }
-        if (paperImg) {
-          paperImg.src = logoDataUrl;
-          paperImg.style.display = "block";
-        }
-        resolve();
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (e) {
-    // Fallback: just make paper-logo visible with its existing src
-    const paperImg = $("paper-logo");
-    if (paperImg) paperImg.style.display = "block";
+  const candidates = ["logo.jpg", "public/logo.jpg"];
+
+  // Always ensure logo elements stay visible with an <img> src fallback chain
+  const sbImg    = $("logo-preview-sb");
+  const paperImg = $("paper-logo");
+  const navImg   = $("navbar-logo");
+  const loginImg = $("brand-logo");
+
+  // Make all logo images visible immediately — don't wait for async
+  [sbImg, paperImg, navImg, loginImg].forEach((el) => {
+    if (el) el.style.display = "block";
+  });
+
+  // Try to fetch as dataURL for PDF support (html2canvas needs inline data)
+  for (const path of candidates) {
+    try {
+      const resp = await fetch(path);
+      if (!resp.ok) continue;
+      const blob = await resp.blob();
+      await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          logoDataUrl = ev.target.result;
+          if (sbImg)    { sbImg.src    = logoDataUrl; sbImg.style.display    = "block"; }
+          if (paperImg) { paperImg.src = logoDataUrl; paperImg.style.display = "block"; }
+          if (navImg)   { navImg.src   = logoDataUrl; navImg.style.display   = "block"; }
+          if (loginImg) { loginImg.src = logoDataUrl; loginImg.style.display = "block"; }
+          resolve();
+        };
+        reader.onerror = () => resolve(); // don't crash if FileReader fails
+        reader.readAsDataURL(blob);
+      });
+      return; // success — stop trying other paths
+    } catch (e) {
+      // Try next candidate
+    }
   }
+  // Final fallback: keep existing src= attributes visible (already done above)
 }
 
 // ─── BOOT ─────────────────────────────────────────────────
