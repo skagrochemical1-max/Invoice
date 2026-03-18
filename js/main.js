@@ -449,20 +449,15 @@ function doLogin() {
     $("login-screen").style.display = "none";
     $("toolbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
-    bootApp();
-    // Set phone number for sidebar and preview
-    setUserPhone(found.mobile);
-    showUserMobile(found.mobile);
     showProfileSymbol(u);
+    bootApp(found.mobile); // pass mobile so it is set AFTER refreshPaper runs
   } else if (CREDENTIALS[u] && CREDENTIALS[u] === p) {
     localStorage.setItem("inv_auth", u);
     localStorage.setItem("inv_user_mobile", "");
     $("login-screen").style.display = "none";
     $("toolbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
-    bootApp();
-    setUserPhone("");
-    showUserMobile("");
+    bootApp("");
   } else {
     toast("Invalid credentials", "error");
     $("l-pass").value = "";
@@ -573,7 +568,7 @@ async function loadDefaultLogo() {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────
-async function bootApp() {
+async function bootApp(loggedInMobile) {
   // Track whether we loaded an existing invoice from history
   // so downloadPDF knows not to bump the invoice number counter.
   window._invoiceLoadedFromHistory = false;
@@ -623,9 +618,12 @@ async function bootApp() {
   initMobile();
 
   // Recompute everything visually after all setup is done
+  // NOTE: setUserPhone is called LAST inside the timeout so it always wins
+  // over any phone number that loadSaved() may have restored from localStorage.
   setTimeout(() => {
     refreshPaper();
     recalcAll();
+    if (loggedInMobile) setUserPhone(loggedInMobile);
     autoSave(); // Snapshot state
   }, 50);
 }
@@ -654,13 +652,12 @@ window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem(LS_KEY);
   const auth = localStorage.getItem("inv_auth");
   const mobile = localStorage.getItem("inv_user_mobile");
-  if (auth && (mobile || mobile === "")) {
+  if (auth) {
     $("login-screen").style.display = "none";
     $("toolbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
-    bootApp();
-    setUserPhone(mobile);
-    showUserMobile(mobile);
+    showProfileSymbol(auth);
+    bootApp(mobile); // pass mobile so it is set AFTER refreshPaper runs
   }
 });
 
