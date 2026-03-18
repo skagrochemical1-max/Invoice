@@ -509,6 +509,11 @@ function setUserPhone(mobile) {
   if (paperPhone) {
     paperPhone.textContent = mobile || "—";
   }
+  // Also update preview and PDF everywhere
+  const previewMobile = document.getElementById("p-mobile");
+  if (previewMobile) {
+    previewMobile.textContent = mobile || "—";
+  }
 }
 // Show mobile if already logged in
 window.addEventListener("DOMContentLoaded", () => {
@@ -885,6 +890,21 @@ function renderMobItems() {
                             <span class="sb-label">Quantity</span>
                             <input class="sb-input" type="number" min="1" placeholder="1" value="${row.qty}"
                               data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)" />
+                        // Ensure mobile number is shown everywhere after login
+                        window.addEventListener("DOMContentLoaded", () => {
+                          const auth = localStorage.getItem("inv_auth");
+                          const mobile = localStorage.getItem("inv_user_mobile");
+                          if (auth && (mobile || mobile === "")) {
+                            setUserPhone(mobile);
+                            showUserMobile(mobile);
+                            showProfileSymbol(auth);
+                            // Update preview and PDF
+                            const previewMobile = document.getElementById("p-mobile");
+                            if (previewMobile) {
+                              previewMobile.textContent = mobile || "—";
+                            }
+                          }
+                        });
                         // Quantity input behaviors
                         function selectQtyInput(input) {
                           // Auto-select value on focus
