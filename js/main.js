@@ -366,10 +366,13 @@ function showProfileSymbol(username) {
   let profile = document.getElementById("profile-symbol");
   let toolbarBrand = document.querySelector(".toolbar-brand");
   let toolbarActions = document.querySelector(".toolbar-actions");
+  // Get mobile from localStorage
+  let mobile = localStorage.getItem("inv_user_mobile") || "";
   if (!profile) {
     profile = document.createElement("div");
     profile.id = "profile-symbol";
     profile.textContent = username ? username.charAt(0).toUpperCase() : "";
+    profile.title = mobile ? `Mobile: ${mobile}` : "";
     // Desktop: show in toolbar actions
     if (window.innerWidth > 768 && toolbarActions) {
       profile.style =
@@ -385,6 +388,7 @@ function showProfileSymbol(username) {
     }
   } else {
     profile.textContent = username ? username.charAt(0).toUpperCase() : "";
+    profile.title = mobile ? `Mobile: ${mobile}` : "";
     // Update style if screen size changes
     if (window.innerWidth > 768 && toolbarActions) {
       profile.style =
@@ -460,6 +464,15 @@ function setUserPhone(mobile) {
   if (phoneInput) {
     phoneInput.value = mobile || "";
     phoneInput.dispatchEvent(new Event("input"));
+    // Show mobile below phone input
+    let mobInfo = document.getElementById("user-mobile-info");
+    if (!mobInfo) {
+      mobInfo = document.createElement("div");
+      mobInfo.id = "user-mobile-info";
+      mobInfo.style = "font-size:12px;color:#334155;margin-top:2px;";
+      phoneInput.parentNode.appendChild(mobInfo);
+    }
+    mobInfo.textContent = mobile ? `Logged-in Mobile: ${mobile}` : "";
   }
   // Preview (paper)
   const paperPhone = document.getElementById("p-phone");
@@ -799,7 +812,7 @@ function renderRows() {
       <td><input class="tbl-input" placeholder="Product Name" value="${esc(row.name)}" data-rid="${row.id}" data-field="name" autocomplete="off" onfocus="showAutocomplete(this)" oninput="filterAutocomplete(); updateRowField(this)" onchange="updateRowField(this)"/>
         <div style="margin-top:2px"><input class="tbl-input" style="font-size:10px;color:#94a3b8" placeholder="Desc (opt.)" value="${esc(row.desc)}" data-rid="${row.id}" data-field="desc" onchange="updateRowField(this)" oninput="updateRowField(this)"/></div>
       </td>
-      <td><input class="tbl-input num-input" type="number" min="1" value="${row.qty}" data-rid="${row.id}" data-field="qty" onchange="calcRow(this)" oninput="calcRow(this)"/></td>
+      <td><input class="tbl-input num-input" type="number" min="1" value="${row.qty}" data-rid="${row.id}" data-field="qty" onchange="calcRow(this)" oninput="calcRow(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)"/></td>
       <td><input class="tbl-input price-input" type="number" min="0" step="0.01" value="${row.price || ""}" placeholder="0.00" data-rid="${row.id}" data-field="price" onchange="calcRow(this)" oninput="calcRow(this)"/></td>
       <td><span class="row-total" id="rt_${row.id}">${row.total > 0 ? "₹" + INR.format(row.total) : "—"}</span></td>
       <td class="no-print"><button class="remove-row" onclick="removeRow('${row.id}')" title="Remove">✕</button></td>`;
@@ -841,7 +854,37 @@ function renderMobItems() {
                         <div>
                             <span class="sb-label">Quantity</span>
                             <input class="sb-input" type="number" min="1" placeholder="1" value="${row.qty}"
-                                data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" />
+                              data-rid="${row.id}" data-field="qty" oninput="mobCalcField(this)" onfocus="selectQtyInput(this)" onblur="resetQtyIfEmpty(this)" onkeydown="qtyBackspaceHandler(event, this)" />
+                        // Quantity input behaviors
+                        function selectQtyInput(input) {
+                          // Auto-select value on focus
+                          input.select();
+                        }
+
+                        function qtyBackspaceHandler(e, input) {
+                          // If Backspace is pressed and all is selected, clear
+                          if (e.key === "Backspace") {
+                            if (input.value && input.selectionStart === 0 && input.selectionEnd === input.value.length) {
+                              input.value = "";
+                              e.preventDefault();
+                            }
+                          }
+                        }
+
+                        function resetQtyIfEmpty(input) {
+                          // If left empty after edit, reset to 1
+                          if (!input.value || input.value === "0") {
+                            input.value = "1";
+                            // Update row data
+                            const rid = input.dataset.rid;
+                            const row = rows.find(r => r.id === rid);
+                            if (row) {
+                              row.qty = 1;
+                              recalcAll();
+                              autoSave();
+                            }
+                          }
+                        }
                         </div>
                         <div>
                             <span class="sb-label">Unit Price (₹)</span>
@@ -1578,24 +1621,21 @@ async function saveToCloud(isSilent = false) {
     }
 
     // --- DUPLICATE DETECTION / ID RECOVERY ---
-    // If we don't have currentInvoiceId in memory, try to find an existing record in the cloud
-    // to prevent double-saving (especially important if user saves, refreshes, then clicks download).
-    if (!window.currentInvoiceId) {
-      try {
-        const cloudInvoices = await apiGetInvoices();
-        const existingRow = cloudInvoices.find(inv =>
-          (inv.invoiceNumber === payload.meta.invoiceNumber) ||
-          (inv.customerName && inv.date &&
-           inv.customerName === payload.customer.name &&
-           inv.date === payload.meta.date)
-        );
-        if (existingRow && existingRow.uniqueId) {
-          window.currentInvoiceId = existingRow.uniqueId;
-          payload.meta.uniqueId = existingRow.uniqueId;
-        }
-      } catch (recoveryErr) {
-        console.warn("Could not check for existing record:", recoveryErr);
+    // Always check for existing record in the cloud to prevent double-saving
+    try {
+      const cloudInvoices = await apiGetInvoices();
+      const existingRow = cloudInvoices.find(inv =>
+        (inv.invoiceNumber === payload.meta.invoiceNumber) ||
+        (inv.customerName && inv.date &&
+         inv.customerName === payload.customer.name &&
+         inv.date === payload.meta.date)
+      );
+      if (existingRow && existingRow.uniqueId) {
+        window.currentInvoiceId = existingRow.uniqueId;
+        payload.meta.uniqueId = existingRow.uniqueId;
       }
+    } catch (recoveryErr) {
+      console.warn("Could not check for existing record:", recoveryErr);
     }
 
     let response;
